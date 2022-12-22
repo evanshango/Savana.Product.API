@@ -1,0 +1,48 @@
+name: Publish Product Service Docker Image
+on:
+  push:
+    branches:
+      - main
+env:
+  DOCKER_USER: ${{secrets.DOCKER_USER}}
+  REPO: ${{secrets.DOCKER_USER}}/savana-product-service
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Latest Code
+        uses: actions/checkout@v3
+
+      - name: Version Latest Code
+        uses: TriPSs/conventional-changelog-action@v3.18.0
+        id: versioning
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-version-file: 'true'
+          git-message: ${{ github.event.commits.message }}
+          git-user-name: ${{ github.event.head_commit.author.name }}
+          git-user-email: ${{ github.event.head_commit.author.email }}
+          create-summary: "true"
+          skip-commit: "true"
+
+      - name: Show Latest Version
+        run: echo "${{ steps.versioning.outputs.version }}"
+
+      - name: Login to DockerHub
+        run: docker login -u ${{env.DOCKER_USER}} -p ${{secrets.DOCKER_PASS}}
+
+      - name: Build Docker Image
+        run: docker build . --file Dockerfile -t ${{env.REPO}}:v${{steps.versioning.outputs.version}}
+
+      - name: Push Image to DockerHub
+        run: docker push ${{env.REPO}}:v${{steps.versioning.outputs.version}}
+
+      - name: Release Latest Build Image
+        uses: actions/create-release@v1
+        if: ${{steps.versioning.outputs.skipped == 'false'}}
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        with:
+          tag_name: ${{steps.versioning.outputs.tag}}
+          release_name: Release ${{steps.versioning.outputs.tag}}
+          body: ${{steps.versioning.outputs.clean_changelog}}

@@ -7,8 +7,8 @@ FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
 COPY ["Savana.Product.API.csproj", "Savana.Product.API/"]
 RUN dotnet restore "Savana.Product.API/Savana.Product.API.csproj"
-COPY . .
 WORKDIR "/src/Savana.Product.API"
+COPY . .
 RUN dotnet build "Savana.Product.API.csproj" -c Release -o /app/build
 
 FROM build AS publish
