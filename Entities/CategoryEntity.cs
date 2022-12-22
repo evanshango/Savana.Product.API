@@ -3,9 +3,11 @@ using Treasures.Common.Helpers;
 
 namespace Savana.Product.API.Entities;
 
-public class Brand : BaseEntity {
+public class CategoryEntity : BaseEntity {
     [Required] public string? Name { get; set; }
+    [Required] public string? Icon { get; set; }
     [Required] public string? Slug { get; set; }
+    [Required] public string? Color { get; set; }
 
     public string? GetSlug() => Name?.Replace(" ", "-").ToLower();
 }

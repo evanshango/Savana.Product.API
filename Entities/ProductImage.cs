@@ -7,5 +7,5 @@ public class ProductImage: BaseEntity {
     [Required] public string? ImageUrl { get; set; }
     [Required] public string? Flag { get; set; }
     [Required] public string? ProductId { get; set; }
-    public virtual Product? Product { get; set; }
+    public virtual ProductEntity? Product { get; set; }
 }
