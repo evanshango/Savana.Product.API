@@ -38,6 +38,9 @@ public class BrandService : IBrandService {
         return existing?.MapBrandToDto();
     }
 
+    public async Task<BrandEntity?> GetBrandById(string brandId) => await _unitOfWork
+        .Repository<BrandEntity>().GetByIdAsync(brandId);
+    
     public async Task<BrandDto?> UpdateBrand(string slug, string updatedBy, BrandReq brandReq) {
         var existing = await FetchBrand(slug: slug, name: null);
         if (existing == null) return null;

@@ -10,6 +10,7 @@ public interface ICategoryService {
     Task<PagedList<CategoryEntity>> GetCategories(CategoryParams categoryParams);
     Task<CategoryDto?> AddCategory(CategoryReq categoryReq, string createdBy);
     Task<CategoryDto?> GetCategoryBySlug(string slug);
+    Task<CategoryEntity?> GetCategoryById(string categoryId);
     Task<CategoryDto?> UpdateCategory(string slug, string updatedBy, CategoryReq categoryReq);
     Task<CategoryDto?> DeleteCategory(string slug, string updatedBy);
 }   

@@ -40,6 +40,9 @@ public class CategoryService : ICategoryService {
         return existing?.MapCategoryToDto();
     }
 
+    public async Task<CategoryEntity?> GetCategoryById(string categoryId) => await _unitOfWork
+        .Repository<CategoryEntity>().GetByIdAsync(categoryId);
+
     public async Task<CategoryDto?> UpdateCategory(string slug, string updatedBy, CategoryReq categoryReq) {
         var existing = await FetchCategory(slug: slug, name: null);
         if (existing == null) return null;

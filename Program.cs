@@ -20,7 +20,8 @@ builder.Services.AddControllers().AddJsonOptions(opt => {
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDbContext<StoreContext>(opt => {
-    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!);
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")!,
+        c => c.UseQuerySplittingBehavior(QuerySplittingBehavior.SingleQuery));
 });
 //Inject services from Treasures.Common library
 builder.Services.AddScoped(typeof(ISqlRepository<>), typeof(SqlRepository<>));
@@ -31,6 +32,7 @@ builder.Services.AddErrorResponse<ApiBehaviorOptions>();
 
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 builder.Services.AddRouting(opt => {
     opt.LowercaseUrls = true;
