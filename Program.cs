@@ -27,12 +27,18 @@ builder.Services.AddDbContext<StoreContext>(opt => {
 builder.Services.AddScoped(typeof(ISqlRepository<>), typeof(SqlRepository<>));
 builder.Services.AddScoped<IUnitOfWork>(s => new UnitOfWork(s.GetService<StoreContext>()!));
 builder.Services.AddJwtAuthentication(builder.Configuration["Token:Key"], builder.Configuration["Token:Issuer"]);
+builder.Services.AddScoped<ICloudinaryService>(_ =>
+    new CloudinaryService(builder.Configuration["Cloudinary:CloudName"],
+        builder.Configuration["Cloudinary:ApiKey"], builder.Configuration["Cloudinary:ApiSecret"]
+    )
+);
 builder.Services.AddSwaggerAuthenticated("Savana Product API Service", "v1");
 builder.Services.AddErrorResponse<ApiBehaviorOptions>();
 
 builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IFileService, FileService>();
 
 builder.Services.AddRouting(opt => {
     opt.LowercaseUrls = true;
