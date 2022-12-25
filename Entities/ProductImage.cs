@@ -8,4 +8,9 @@ public class ProductImage: BaseEntity {
     [Required] public string? Flag { get; set; }
     [Required] public string? ProductId { get; set; }
     public virtual ProductEntity? Product { get; set; }
+
+    public ProductImage(string id, string url) {
+        Id = id;
+        ImageUrl = url;
+    }
 }
