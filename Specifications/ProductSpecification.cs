@@ -35,5 +35,6 @@ public class ProductSpecification : SpecificationService<ProductEntity> {
     public ProductSpecification(string productId) : base(p => p.Id.Equals(productId)) {
         AddInclude(p => p.Brand!);
         AddInclude($"{nameof(ProductEntity.ProductCategories)}.{nameof(ProductCategory.Category)}");
+        AddInclude(p => p.ProductImages);
     }
 }
