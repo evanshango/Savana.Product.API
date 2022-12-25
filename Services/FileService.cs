@@ -66,8 +66,9 @@ public class FileService : IFileService {
     ) {
         var uploadResult = await _cloudinaryService.UploadFile(file, prod.Id, w, h);
         if (uploadResult == null) return null;
-        var display = new ProductImage(uploadResult.PublicId, uploadResult.Url.ToString()) {
-            Flag = tag, Product = prod, ProductId = prod.Id, CreatedBy = createdBy
+        var display = new ProductImage {
+            Id = uploadResult.PublicId, ImageUrl = uploadResult.Url.ToString(), Flag = tag, Product = prod,
+            ProductId = prod.Id, CreatedBy = createdBy
         };
         var res = _unitOfWork.Repository<ProductImage>().AddAsync(display);
         var result = await _unitOfWork.Complete();

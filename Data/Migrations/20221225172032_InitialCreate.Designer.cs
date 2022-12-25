@@ -12,7 +12,7 @@ using Savana.Product.API.Data;
 namespace Savana.Product.API.Data.Migrations
 {
     [DbContext(typeof(StoreContext))]
-    [Migration("20221222215233_InitialCreate")]
+    [Migration("20221225172032_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
