@@ -7,7 +7,7 @@ namespace Savana.Product.API.Specifications;
 public class CategorySpecification : SpecificationService<CategoryEntity> {
     public CategorySpecification(CategoryParams catParams) : base(c =>
         (string.IsNullOrEmpty(catParams.Name) || c.Name!.ToLower().Contains(catParams.Name.ToLower())) &&
-        (catParams.Enabled != null ? c.Active == catParams.Enabled : c.Active == true)
+        (catParams.Enabled == null || c.Active == catParams.Enabled)
     ) {
         if (string.IsNullOrEmpty(catParams.OrderBy)) AddOrderByDesc(c => c.CreatedAt);
 

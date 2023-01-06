@@ -7,7 +7,7 @@ namespace Savana.Product.API.Specifications;
 public class BrandSpecification : SpecificationService<BrandEntity> {
     public BrandSpecification(BrandParams brandParams) : base(b =>
         string.IsNullOrEmpty(brandParams.SearchTerm) || b.Name!.ToLower().Contains(brandParams.SearchTerm.ToLower()) &&
-        (brandParams.Enabled != null ? b.Active == brandParams.Enabled : b.Active == true)
+        (brandParams.Enabled == null || b.Active == brandParams.Enabled)
     ) {
         if (brandParams.Products != null) AddInclude(b => b.Products);
 

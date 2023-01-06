@@ -60,6 +60,7 @@ namespace Savana.Product.API.Data.Migrations
                     Quantity = table.Column<int>(type: "integer", nullable: false),
                     Price = table.Column<double>(type: "double precision", nullable: false),
                     BrandId = table.Column<string>(type: "text", nullable: false),
+                    PromotionId = table.Column<string>(type: "text", nullable: true),
                     Owner = table.Column<string>(type: "text", nullable: false),
                     Active = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedBy = table.Column<string>(type: "text", nullable: true),
@@ -127,6 +128,45 @@ namespace Savana.Product.API.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "promotions",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    BrandId = table.Column<string>(type: "text", nullable: true),
+                    CategoryId = table.Column<string>(type: "text", nullable: true),
+                    ProductId = table.Column<string>(type: "text", nullable: true),
+                    PromoType = table.Column<string>(type: "text", nullable: true),
+                    Discount = table.Column<double>(type: "double precision", nullable: false),
+                    ExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Active = table.Column<bool>(type: "boolean", nullable: false),
+                    CreatedBy = table.Column<string>(type: "text", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_promotions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_promotions_brands_BrandId",
+                        column: x => x.BrandId,
+                        principalTable: "brands",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_promotions_categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "categories",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_promotions_products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "products",
+                        principalColumn: "Id");
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_product_categories_CategoryId",
                 table: "product_categories",
@@ -141,6 +181,22 @@ namespace Savana.Product.API.Data.Migrations
                 name: "IX_products_BrandId",
                 table: "products",
                 column: "BrandId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_promotions_BrandId",
+                table: "promotions",
+                column: "BrandId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_promotions_CategoryId",
+                table: "promotions",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_promotions_ProductId",
+                table: "promotions",
+                column: "ProductId",
+                unique: true);
         }
 
         /// <inheritdoc />
@@ -151,6 +207,9 @@ namespace Savana.Product.API.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "product_images");
+
+            migrationBuilder.DropTable(
+                name: "promotions");
 
             migrationBuilder.DropTable(
                 name: "categories");

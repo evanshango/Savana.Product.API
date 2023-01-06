@@ -148,6 +148,9 @@ namespace Savana.Product.API.Data.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("PromotionId")
+                        .HasColumnType("text");
+
                     b.Property<int>("Quantity")
                         .HasColumnType("integer");
 
@@ -203,6 +206,64 @@ namespace Savana.Product.API.Data.Migrations
                     b.ToTable("product_images", (string)null);
                 });
 
+            modelBuilder.Entity("Savana.Product.API.Entities.PromotionEntity", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Active")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("BrandId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CategoryId")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("Discount")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ProductId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PromoType")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BrandId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ProductId")
+                        .IsUnique();
+
+                    b.ToTable("promotions", (string)null);
+                });
+
             modelBuilder.Entity("Savana.Product.API.Entities.ProductCategory", b =>
                 {
                     b.HasOne("Savana.Product.API.Entities.CategoryEntity", "Category")
@@ -244,6 +305,27 @@ namespace Savana.Product.API.Data.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Savana.Product.API.Entities.PromotionEntity", b =>
+                {
+                    b.HasOne("Savana.Product.API.Entities.BrandEntity", "Brand")
+                        .WithMany()
+                        .HasForeignKey("BrandId");
+
+                    b.HasOne("Savana.Product.API.Entities.CategoryEntity", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId");
+
+                    b.HasOne("Savana.Product.API.Entities.ProductEntity", "Product")
+                        .WithOne("Promotion")
+                        .HasForeignKey("Savana.Product.API.Entities.PromotionEntity", "ProductId");
+
+                    b.Navigation("Brand");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("Savana.Product.API.Entities.BrandEntity", b =>
                 {
                     b.Navigation("Products");
@@ -254,6 +336,8 @@ namespace Savana.Product.API.Data.Migrations
                     b.Navigation("ProductCategories");
 
                     b.Navigation("ProductImages");
+
+                    b.Navigation("Promotion");
                 });
 #pragma warning restore 612, 618
         }

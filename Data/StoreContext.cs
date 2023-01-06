@@ -8,6 +8,7 @@ public class StoreContext : DbContext {
     public DbSet<CategoryEntity> Categories { get; set; } = null!;
     public DbSet<ProductEntity> Products { get; set; } = null!;
     public DbSet<ProductImage> ProductImages { get; set; } = null!;
+    public DbSet<PromotionEntity> Promotions { get; set; } = null!;
 
     public StoreContext(DbContextOptions<StoreContext> options) : base(options) { }
 
@@ -16,9 +17,13 @@ public class StoreContext : DbContext {
 
         builder.Entity<BrandEntity>().ToTable("brands");
         builder.Entity<CategoryEntity>().ToTable("categories");
-        builder.Entity<ProductEntity>().ToTable("products");
+        builder.Entity<ProductEntity>().ToTable("products")
+            .HasOne(p => p.Promotion)
+            .WithOne(pr => pr.Product)
+            .HasForeignKey<PromotionEntity>(pr => pr.ProductId);
         builder.Entity<ProductImage>().ToTable("product_images");
         builder.Entity<ProductCategory>().ToTable("product_categories")
             .HasKey(pi => new { pi.ProductId, pi.CategoryId });
+        builder.Entity<PromotionEntity>().ToTable("promotions");
     }
 }

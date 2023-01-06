@@ -12,8 +12,12 @@ namespace Savana.Product.API.Services;
 
 public class CategoryService : ICategoryService {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CategoryService> _logger;
 
-    public CategoryService(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
+    public CategoryService(IUnitOfWork unitOfWork, ILogger<CategoryService> logger) {
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
 
     public async Task<PagedList<CategoryEntity>> GetCategories(CategoryParams catParams) {
         var catSpec = new CategorySpecification(catParams);
@@ -23,7 +27,10 @@ public class CategoryService : ICategoryService {
 
     public async Task<CategoryDto?> AddCategory(CategoryReq categoryReq, string createdBy) {
         var existing = await FetchCategory(slug: null, name: categoryReq.Name);
-        if (existing != null) return existing.MapCategoryToDto();
+        if (existing != null) {
+            _logger.LogWarning("Category with name {Name} already exists", existing.Name);
+            return existing.MapCategoryToDto();
+        }
 
         var newCategory = new CategoryEntity {
             Name = categoryReq.Name, Icon = categoryReq.Icon, Color = categoryReq.Color, CreatedBy = createdBy
@@ -32,7 +39,10 @@ public class CategoryService : ICategoryService {
 
         var res = _unitOfWork.Repository<CategoryEntity>().AddAsync(newCategory);
         var result = await _unitOfWork.Complete();
-        return result < 1 ? null : res.MapCategoryToDto();
+
+        if (result >= 1) return res.MapCategoryToDto();
+        _logger.LogError("Error while creating Category with name {Name}", categoryReq.Name);
+        return null;
     }
 
     public async Task<CategoryDto?> GetCategoryBySlug(string slug) {
@@ -45,10 +55,16 @@ public class CategoryService : ICategoryService {
 
     public async Task<CategoryDto?> UpdateCategory(string slug, string updatedBy, CategoryReq categoryReq) {
         var existing = await FetchCategory(slug: slug, name: null);
-        if (existing == null) return null;
+        if (existing == null) {
+            _logger.LogWarning("Category with slug {Slug} not found", slug);
+            return null;
+        }
 
         var existingName = await FetchCategory(slug: null, name: categoryReq.Name);
-        if (existingName != null) return existingName.MapCategoryToDto();
+        if (existingName != null) {
+            _logger.LogWarning("Category with name {Name} already exists", existing.Name);
+            return existingName.MapCategoryToDto();
+        }
 
         existing.Name = categoryReq.Name ?? existing.Name;
         existing.Icon = categoryReq.Icon ?? existing.Icon;
@@ -61,7 +77,10 @@ public class CategoryService : ICategoryService {
 
     public async Task<CategoryDto?> DeleteCategory(string slug, string updatedBy) {
         var existing = await FetchCategory(slug: slug, name: null);
-        if (existing == null) return null;
+        if (existing == null) {
+            _logger.LogWarning("Category with slug {Slug} not found", slug);
+            return null;
+        }
 
         existing.Active = false;
         existing.UpdatedBy = updatedBy;
@@ -77,6 +96,9 @@ public class CategoryService : ICategoryService {
     private async Task<CategoryDto?> SaveCategoryChanges(CategoryEntity existingCategory) {
         var res = _unitOfWork.Repository<CategoryEntity>().UpdateAsync(existingCategory);
         var result = await _unitOfWork.Complete();
-        return result < 1 ? null : res.MapCategoryToDto();
+
+        if (result >= 1) return res.MapCategoryToDto();
+        _logger.LogError("Error while updating Category with name {Name}", existingCategory.Name);
+        return null;
     }
 }
