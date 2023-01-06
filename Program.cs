@@ -54,8 +54,7 @@ builder.Services.AddMassTransit(config => {
     config.AddConsumer<PromoConsumer>();
     config.UsingRabbitMq(
         (ctx, cfg) => {
-            cfg.Host(new Uri(builder.Configuration["RabbitMQ:Host"]),
-                h => {
+            cfg.Host(builder.Configuration["RabbitMQ:Host"], h => {
                     h.Username(builder.Configuration["RabbitMQ:Username"]);
                     h.Password(builder.Configuration["RabbitMQ:Password"]);
                 }
