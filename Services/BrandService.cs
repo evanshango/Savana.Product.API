@@ -12,8 +12,12 @@ namespace Savana.Product.API.Services;
 
 public class BrandService : IBrandService {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<BrandService> _logger;
 
-    public BrandService(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
+    public BrandService(IUnitOfWork unitOfWork, ILogger<BrandService> logger) {
+        _unitOfWork = unitOfWork;
+        _logger = logger;
+    }
 
     public async Task<PagedList<BrandEntity>> GetBrands(BrandParams bParams) {
         var brandSpec = new BrandSpecification(bParams);
@@ -23,14 +27,19 @@ public class BrandService : IBrandService {
     public async Task<BrandDto?> AddBrand(BrandReq brandReq, string createdBy) {
         var existing = await FetchBrand(slug: null, name: brandReq.Name);
 
-        if (existing != null) return existing.MapBrandToDto();
+        if (existing != null) {
+            _logger.LogWarning("Brand with name {Name} already exists", existing.Name);
+            return existing.MapBrandToDto();
+        }
 
         var newBrand = new BrandEntity { Name = brandReq.Name, CreatedBy = createdBy };
         newBrand.Slug = newBrand.GetSlug();
 
         var res = _unitOfWork.Repository<BrandEntity>().AddAsync(newBrand);
         var result = await _unitOfWork.Complete();
-        return result < 1 ? null : res.MapBrandToDto();
+        if (result >= 1) return res.MapBrandToDto();
+        _logger.LogError("Error while creating Brand with name {Name}", brandReq.Name);
+        return null;
     }
 
     public async Task<BrandDto?> GetBrandBySlug(string slug) {
@@ -43,10 +52,16 @@ public class BrandService : IBrandService {
     
     public async Task<BrandDto?> UpdateBrand(string slug, string updatedBy, BrandReq brandReq) {
         var existing = await FetchBrand(slug: slug, name: null);
-        if (existing == null) return null;
+        if (existing == null) {
+            _logger.LogWarning("Brand with slug {Slug} not found", slug);
+            return null;
+        }
 
         var existingName = await FetchBrand(slug: null, name: brandReq.Name);
-        if (existingName != null) return existingName.MapBrandToDto();
+        if (existingName != null) {
+            _logger.LogWarning("Brand with name {Name} already exists", brandReq.Name);
+            return existingName.MapBrandToDto();
+        }
 
         existing.Name = brandReq.Name ?? existing.Name;
         existing.Slug = existing.GetSlug();
@@ -57,7 +72,10 @@ public class BrandService : IBrandService {
 
     public async Task<BrandDto?> DeleteBrand(string slug, string updatedBy) {
         var existing = await FetchBrand(slug: slug, name: null);
-        if (existing == null) return null;
+        if (existing == null) {
+            _logger.LogWarning("Error while deleting brand with slug {Slug}", slug);
+            return null;
+        }
 
         existing.UpdatedBy = updatedBy;
         existing.UpdatedAt = DateTime.UtcNow;
@@ -72,6 +90,9 @@ public class BrandService : IBrandService {
     private async Task<BrandDto?> SaveBrandChanges(BrandEntity existingBrand) {
         var res = _unitOfWork.Repository<BrandEntity>().UpdateAsync(existingBrand);
         var result = await _unitOfWork.Complete();
-        return result < 1 ? null : res.MapBrandToDto();
+
+        if (result >= 1) return res.MapBrandToDto();
+        _logger.LogError("Error while updating Brand with name {Name}", existingBrand.Name);
+        return null;
     }
 }

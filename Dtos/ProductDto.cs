@@ -6,7 +6,9 @@ public class ProductDto {
     public string? Description { get; set; }
     public string? Detail { get; set; }
     public int InStock { get; set; }
-    public double Price { get; set; }
+    public double InitialPrice { get; set; }
+    public double FinalPrice { get; set; }
+    public double Discount { get; set; }
     public string? Brand { get; set; }
     public string? DisplayImage { get; set; }
     public IList<string?>? Categories { get; set; }

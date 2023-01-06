@@ -12,11 +12,15 @@ public class FileService : IFileService {
     private readonly ICloudinaryService _cloudinaryService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IConfiguration _config;
+    private readonly ILogger<FileService> _logger;
 
-    public FileService(ICloudinaryService cloudinaryService, IUnitOfWork unitOfWork, IConfiguration config) {
+    public FileService(
+        ICloudinaryService cloudinaryService, IUnitOfWork unitOfWork, IConfiguration config, ILogger<FileService> logger
+    ) {
         _cloudinaryService = cloudinaryService;
         _unitOfWork = unitOfWork;
         _config = config;
+        _logger = logger;
     }
 
     public async Task<FileDto?> UploadMedia(ProductEntity product, MediaReq mediaReq, string createdBy) {
@@ -50,29 +54,45 @@ public class FileService : IFileService {
     public async Task<FileDto?> RemoveFile(string url) {
         var fileSpec = new MediaSpecification(url, null);
         var existing = await _unitOfWork.Repository<ProductImage>().GetEntityWithSpec(fileSpec);
-        if (existing == null) return null;
+        if (existing == null) {
+            _logger.LogWarning("Product image with url {Url} not found", url);
+            return null;
+        }
 
         var deletionResult = await DeleteFile(existing.Id);
-        if (deletionResult.Result != "ok") return null;
+        if (deletionResult.Result != "ok") {
+            _logger.LogError("Unable to delete image with url {Url}", url);
+            return null;
+        }
+
         _unitOfWork.Repository<ProductImage>().DeleteAsync(existing);
         var result = await _unitOfWork.Complete();
-        return result < 1
-            ? null
-            : new FileDto { Message = "File deleted", StatusCode = 200, Detail = "Media file deleted successfully" };
+
+        if (result >= 1)
+            return new FileDto { Message = "File deleted", StatusCode = 200, Detail = "Media file deleted" };
+        _logger.LogError("Unable to delete media file with id {Id}", existing.Id);
+        return null;
     }
 
     private async Task<ProductImage?> UploadFile(
         IFormFile file, int w, int h, string tag, string createdBy, ProductEntity prod
     ) {
         var uploadResult = await _cloudinaryService.UploadFile(file, prod.Id, w, h);
-        if (uploadResult == null) return null;
+        if (uploadResult == null) {
+            _logger.LogError("Unable to upload product image for product with id {Id}", prod.Id);
+            return null;
+        }
+
         var display = new ProductImage {
             Id = uploadResult.PublicId, ImageUrl = uploadResult.Url.ToString(), Flag = tag, Product = prod,
             ProductId = prod.Id, CreatedBy = createdBy
         };
         var res = _unitOfWork.Repository<ProductImage>().AddAsync(display);
         var result = await _unitOfWork.Complete();
-        return result < 1 ? null : res;
+
+        if (result >= 1) return res;
+        _logger.LogError("Error while saving product upload result for product with id {Id}", prod.Id);
+        return null;
     }
 
     private async Task<DeletionResult> DeleteFile(string id) => await _cloudinaryService.RemoveFile(id);

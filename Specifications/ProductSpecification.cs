@@ -7,9 +7,10 @@ namespace Savana.Product.API.Specifications;
 public class ProductSpecification : SpecificationService<ProductEntity> {
     public ProductSpecification(ProductParams prodParams) : base(p =>
         (string.IsNullOrEmpty(prodParams.Name) || p.Name!.ToLower().Contains(prodParams.Name.ToLower())) &&
-        (prodParams.Enabled != null ? p.Active == prodParams.Enabled : p.Active == true)
+        (prodParams.Enabled == null || p.Active == prodParams.Enabled)
     ) {
         AddInclude(p => p.ProductImages);
+        AddInclude(p => p.Promotion!);
 
         if (string.IsNullOrEmpty(prodParams.OrderBy)) AddOrderByDesc(p => p.CreatedAt);
 
